@@ -7,6 +7,6 @@ env:
   - GO111MODULE=on
 
 script:
-  - go build -mod=vendor example/client.go
+  - go build -mod=vendor -o davisweather example/main.go
 
 install: true
