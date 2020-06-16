@@ -4,10 +4,13 @@
 package davisweather
 
 import (
+	"bytes"
+	"compress/zlib"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"log"
 	"sync"
 	"time"
@@ -270,6 +273,40 @@ func (r *Report) JSON() []byte {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 	return r.lastBytes
+}
+
+// Encode returns a zlib encoded weather report.
+func (r *Report) Encode() []byte {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	// stream last bytes into compressed buffer
+	var buff bytes.Buffer
+	stream := zlib.NewWriter(&buff)
+	stream.Write(r.lastBytes)
+	stream.Close()
+
+	// return compressed bytes
+	return buff.Bytes()
+}
+
+// Decode updates the Report using a zlib encoded weather report. It returns an
+// error if the provided payload is not valid.
+func (r *Report) Decode(payload []byte) error {
+	// uncompress data
+	buff := bytes.NewReader(payload)
+	stream, err := zlib.NewReader(buff)
+	if err != nil {
+		return err
+	}
+	defer stream.Close()
+
+	// read uncompressed data
+	report, err := ioutil.ReadAll(stream)
+	if err != nil {
+		return err
+	}
+	return r.UpdateJSON(report)
 }
 
 // updateHook is called after UpdateHTTP, UpdateUDP, and UpdateJSON. If the
