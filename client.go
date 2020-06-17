@@ -39,7 +39,7 @@ type Client struct {
 // Verbose enables Client logging.
 func Managed(ctx context.Context, verbose bool) *Client {
 	// initialize report and notification channel
-	report, notify := newReport(verbose)
+	report, notify := NewReport(verbose)
 	// generate client
 	c := &Client{
 		Notify:  notify,
@@ -72,7 +72,7 @@ func Unmanaged(ctx context.Context, verbose bool, hostname string, port int) (*C
 	}
 	// initialize report and notification channel
 	var u wllUnit
-	report, notify := newReport(verbose)
+	report, notify := NewReport(verbose)
 
 	// parse provided hostname
 	ip := net.ParseIP(hostname)

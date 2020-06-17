@@ -84,10 +84,10 @@ type Report struct {
 	mutex        *sync.Mutex // mutex is for atomic report actions
 }
 
-// newReport returns a new Report state and a notification channel. The channel
+// NewReport returns a new Report state and a notification channel. The channel
 // emits a bool when the Report contents have been modified. Verbose enables
 // Report logging.
-func newReport(verbose bool) (*Report, chan bool) {
+func NewReport(verbose bool) (*Report, chan bool) {
 	r := &Report{
 		notify:       make(chan bool, 1),
 		verbose:      verbose,
@@ -252,7 +252,7 @@ func (r *Report) Copy() (*Report, error) {
 	if err != nil {
 		return nil, err
 	}
-	report, notify := newReport(r.verbose)
+	report, notify := NewReport(r.verbose)
 	// unmarshal buffer into report
 	err = json.Unmarshal(buff, &report)
 	if err != nil {
