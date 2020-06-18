@@ -8,6 +8,7 @@ import (
 	"errors"
 	"log"
 	"net"
+	"sync"
 	"time"
 )
 
@@ -30,6 +31,8 @@ type Client struct {
 	unit            *wllUnit  // unit contains the network parameters for connecting to WLL unit
 	udpPort         int       // udpPort is the port of the UDP broadcasts
 	udpLastReported time.Time // udpLastReported is the time the last UDP report was received
+
+	wg *sync.WaitGroup // wg is for checking if all goroutines are done
 }
 
 // Managed returns a managed Davis weather client. It accepts a context for
@@ -45,6 +48,7 @@ func Managed(ctx context.Context, verbose bool) *Client {
 		Notify:  notify,
 		report:  report,
 		verbose: verbose,
+		wg:      &sync.WaitGroup{},
 	}
 	c.println("[davisweather] managed client initialized")
 
@@ -52,6 +56,7 @@ func Managed(ctx context.Context, verbose bool) *Client {
 	mDNSCtx, mDNSDone := context.WithCancel(ctx)
 
 	// start mDNS discovery and event engine
+	c.wg.Add(2)
 	go c.discovery(ctx, mDNSDone)
 	go c.engine(ctx, mDNSCtx)
 	return c
@@ -99,9 +104,12 @@ func Unmanaged(ctx context.Context, verbose bool, hostname string, port int) (*C
 		report:  report,
 		verbose: verbose,
 		unit:    &u,
+		wg:      &sync.WaitGroup{},
 	}
 	c.printf("[davisweather] unmanaged client initialized, using WeatherLink Live unit at %s:%d", u.HostName, u.Port)
+
 	// start event engine, no mDNS context
+	c.wg.Add(1)
 	go c.engine(ctx, nil)
 	return c, nil
 }
@@ -109,6 +117,11 @@ func Unmanaged(ctx context.Context, verbose bool, hostname string, port int) (*C
 // Report returns the latest weather report or an error.
 func (c *Client) Report() (*Report, error) {
 	return c.report.Copy()
+}
+
+// Closed blocks until the client has been gracefully terminated.
+func (c *Client) Closed() {
+	c.wg.Wait()
 }
 
 // println calls log.Println if verbose logging is enabled.

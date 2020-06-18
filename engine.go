@@ -37,6 +37,9 @@ const (
 // completed. If the unit in Client is defined (unmanaged client), the engine
 // starts the UDP and HTTP loops without delay.
 func (c *Client) engine(ctx context.Context, mDNS context.Context) {
+	// goroutine monitoring
+	defer c.wg.Done()
+
 	// stall engine until mDNS has resolved
 	if c.unit == nil && mDNS != nil {
 		c.println("[davisweather] waiting for mDNS autodiscovery")
@@ -45,21 +48,26 @@ func (c *Client) engine(ctx context.Context, mDNS context.Context) {
 	select {
 	case <-ctx.Done():
 		// received termination signal
-		c.println("[davisweather] terminating event loop")
 		return
 	default:
 		// start HTTP and UDP event loops
 		c.println("[davisweather] initializing UDP and HTTP event loops")
+		c.wg.Add(2)
 		go c.httpEventLoop(ctx)
 		go c.udpEventLoop(ctx)
+
+		// received termination signal
 		<-ctx.Done()
-		c.println("[davisweather] terminating event loop")
+		return
 	}
 }
 
 // httpEventLoop perodically retrieves weather conditions over HTTP and updates
 // the Report state in Client.
 func (c *Client) httpEventLoop(ctx context.Context) {
+	// goroutine monitoring
+	defer c.wg.Done()
+
 	// WLL does can't support concurrent HTTP, allow UDP to get first request
 	time.Sleep(5 * time.Second)
 
@@ -96,6 +104,9 @@ func (c *Client) httpEventLoop(ctx context.Context) {
 // udpEventLoop receives weather conditions over UDP and updates the Report
 // state in Client.
 func (c *Client) udpEventLoop(ctx context.Context) {
+	// goroutine monitoring
+	defer c.wg.Done()
+
 	// UDP context to notify event loop UDP port is acquired
 	udpCtx, udpDone := context.WithCancel(ctx)
 	defer udpDone()
@@ -135,16 +146,18 @@ func (c *Client) udpEventLoop(ctx context.Context) {
 			continue
 		}
 
+		// start connection watchdog
+		connCtx, connCancel := context.WithCancel(ctx)
+		go c.connWatchdog(connCtx, conn)
 		c.println("[davisweather udp] listening for weather broadcasts")
 
 		// create internal buffer for reading UDP broadcasts
 		buff := make([]byte, udpBufferSize)
 		for {
-			// terminate or continue
 			select {
 			case <-ctx.Done():
-				c.println("[davisweather udp] terminating event loop")
-				conn.Close()
+				// terminate connection and UDP event loop
+				connCancel()
 				return
 			default:
 			}
@@ -156,8 +169,8 @@ func (c *Client) udpEventLoop(ctx context.Context) {
 			n, _, err := conn.ReadFrom(buff)
 			if err != nil {
 				c.println("[davisweather udp] failed to read from UDP socket, reprovisioning")
-				conn.Close()
-				// break inner loop
+				// terminate connection, establish new connection
+				connCancel()
 				break
 			}
 			// parse UDP broadcast message
@@ -174,6 +187,16 @@ func (c *Client) udpEventLoop(ctx context.Context) {
 			}
 			c.udpLastReported = time.Now()
 		}
+	}
+}
+
+// connWatchdog listens for the context Done signal and terminates the UDP
+// connection.
+func (c *Client) connWatchdog(ctx context.Context, conn *net.UDPConn) {
+	select {
+	case <-ctx.Done():
+		conn.Close()
+		return
 	}
 }
 

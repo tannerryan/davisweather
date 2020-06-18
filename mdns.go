@@ -48,6 +48,9 @@ func (u *wllUnit) GetURL() string {
 // discovery runs the mDNS discover routine on set intervals to locate the WLL
 // unit. The resolved cancel function is called when a WLL unit is found.
 func (c *Client) discovery(ctx context.Context, resolved context.CancelFunc) {
+	// goroutine monitoring
+	defer c.wg.Done()
+
 	// prevent leaking of context if loop terminates
 	defer resolved()
 
@@ -135,6 +138,4 @@ func mDNSLoop(c *Client, responders <-chan *zeroconf.ServiceEntry, done context.
 			return
 		}
 	}
-	// responders channel was terminated by caller, did not find a device
-	c.println("[davisweather mdns] failed to discover WeatherLink Live unit, reperforming autodiscovery in", mDNSInterval)
 }
