@@ -1,11 +1,11 @@
 # davisweather
 [![Build
-Status](https://img.shields.io/travis/thetannerryan/davisweather.svg?style=flat-square)](https://travis-ci.org/thetannerryan/davisweather)
+Status](https://img.shields.io/travis/tannerryan/davisweather.svg?style=flat-square)](https://travis-ci.org/tannerryan/davisweather)
 [![Go Report
-Card](https://goreportcard.com/badge/github.com/thetannerryan/davisweather?style=flat-square)](https://goreportcard.com/report/github.com/thetannerryan/davisweather)
-[![GoDoc](https://img.shields.io/badge/godoc-reference-5673AF.svg?style=flat-square)](https://pkg.go.dev/github.com/thetannerryan/davisweather)
+Card](https://goreportcard.com/badge/github.com/tannerryan/davisweather?style=flat-square)](https://goreportcard.com/report/github.com/tannerryan/davisweather)
+[![GoDoc](https://img.shields.io/badge/godoc-reference-5673AF.svg?style=flat-square)](https://pkg.go.dev/github.com/tannerryan/davisweather)
 [![GitHub
-license](https://img.shields.io/github/license/thetannerryan/davisweather.svg?style=flat-square)](https://github.com/thetannerryan/davisweather/blob/master/LICENSE)
+license](https://img.shields.io/github/license/tannerryan/davisweather.svg?style=flat-square)](https://github.com/tannerryan/davisweather/blob/master/LICENSE)
 
 Real time consumption of weather data from [Davis WeatherLink
 Live](https://www.davisinstruments.com/weatherlinklive/). 

@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/thetannerryan/davisweather/parser"
+	"github.com/tannerryan/davisweather/parser"
 )
 
 const (

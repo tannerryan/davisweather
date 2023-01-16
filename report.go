@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/thetannerryan/davisweather/parser"
+	"github.com/tannerryan/davisweather/parser"
 )
 
 // Report is the latest weather report.

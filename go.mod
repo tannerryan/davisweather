@@ -1,4 +1,4 @@
-module github.com/thetannerryan/davisweather
+module github.com/tannerryan/davisweather
 
 go 1.14
 

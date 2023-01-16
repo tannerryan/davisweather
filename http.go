@@ -10,7 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/thetannerryan/davisweather/parser"
+	"github.com/tannerryan/davisweather/parser"
 )
 
 var (

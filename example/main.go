@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/thetannerryan/davisweather"
+	"github.com/tannerryan/davisweather"
 )
 
 func main() {
